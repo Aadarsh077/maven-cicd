@@ -1,65 +1,54 @@
-name: Maven Build Workflow
+name: Maven Build and Goals Execution
 
 on:
   push:
     branches:
-      - main  # Trigger on pushes to the main branch
+      - main
   pull_request:
     branches:
-      - main  # Trigger on pull requests to the main branch
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Use the latest Ubuntu runner
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17  # Adjust the JDK version as per your project requirement
-        uses: actions/setup-java@v4
+      - name: Set Up Java
+        uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'  # Eclipse Temurin is a popular OpenJDK distribution
+          distribution: 'temurin'
+          java-version: '17'  # Change if required
+          cache: 'maven'
 
-      - name: Cache Maven Dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: Display Maven Version
-        run: mvn -v
-
-      - name: Maven Validate
+      - name: Validate Maven Project
         run: mvn validate
 
-      - name: Maven Compile
+      - name: Compile the Project
         run: mvn compile
 
-      - name: Maven Test
+      - name: Run Tests
         run: mvn test
 
-      - name: Maven Package
+      - name: Package the Application
         run: mvn package
 
-      - name: Maven Verify
+      - name: Verify the Build
         run: mvn verify
 
-      - name: Maven Install
+      - name: Install Artifacts Locally
         run: mvn install
 
-      # Temporarily skipping 'site' due to plugin conflict
+      - name: Generate Site Documentation
+        run: mvn site
 
-      - name: Display Build Directory Content
-        run: |
-          echo "\n--- Target Directory Contents ---"
-          ls -lah target
+      - name: Deploy the Application
+        run: mvn deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Archive Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: target/*.jar
+      - name: Clean the Project
+        run: mvn clean
