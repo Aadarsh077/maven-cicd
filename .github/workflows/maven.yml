@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '17'  # Change if required
+          java-version: '17'
           cache: 'maven'
 
       - name: Validate Maven Project
@@ -46,9 +46,7 @@ jobs:
         run: mvn site
 
       - name: Deploy the Application
-        run: mvn deploy
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: mvn deploy -DaltDeploymentRepository=my-repo::default::file://$HOME/.m2/repository
 
       - name: Clean the Project
         run: mvn clean
